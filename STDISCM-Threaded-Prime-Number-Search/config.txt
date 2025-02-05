@@ -1,0 +1,2 @@
+﻿NumberOfThreads=4
+UpperLimit=1000
