@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 
 class Program
 {
@@ -35,5 +37,38 @@ class Program
 
         Console.WriteLine($"Number of Threads: {numberOfThreads}");
         Console.WriteLine($"Upper Limit: {upperLimit}");
+
+        // Calculate the range for each thread
+        int range = upperLimit / numberOfThreads;
+        Thread[] threads = new Thread[numberOfThreads];
+        List<int> allPrimes = new List<int>();
+
+        for (int i = 0; i < numberOfThreads; i++)
+        {
+            int start = i * range + 1;
+            int end = (i == numberOfThreads - 1) ? upperLimit : (i + 1) * range;
+
+            PrimeNumberSearcher searcher = new PrimeNumberSearcher(start, end, i + 1);
+            threads[i] = new Thread(() =>
+            {
+                var primes = searcher.SearchPrimes();
+                lock (allPrimes)
+                {
+                    allPrimes.AddRange(primes);
+                }
+            });
+            threads[i].Start();
+        }
+
+        // Wait for all threads to complete
+        foreach (var thread in threads)
+        {
+            thread.Join();
+        }
+
+        // Display all found primes at the end
+        allPrimes.Sort();
+        Console.WriteLine("All found primes:");
+        Console.WriteLine(string.Join(", ", allPrimes));
     }
 }
