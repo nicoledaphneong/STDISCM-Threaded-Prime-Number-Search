@@ -23,8 +23,8 @@ public class PrimeNumberSearcher
             {
                 primes.Add(i);
                 // Print each prime immediately
-                Console.WriteLine($"Thread ID: {_customThreadId}\t|\t Time: {DateTime.Now.ToString("HH:mm:ss.fff")}\t|\t{i}\t|\t Thread Range: ({_start} - {_end})");
-                Thread.Sleep(1000);
+                //Console.WriteLine($"Thread ID: {_customThreadId}\t|\t Time: {DateTime.Now.ToString("HH:mm:ss.fff")}\t|\t{i}\t|\t Thread Range: ({_start} - {_end})");
+                //Thread.Sleep(0);
             }
         }
 

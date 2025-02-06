@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
@@ -42,11 +43,17 @@ class Program
         int range = upperLimit / numberOfThreads;
         Thread[] threads = new Thread[numberOfThreads];
         List<int> allPrimes = new List<int>();
+        int[] primesPerThread = new int[numberOfThreads];
+
+        // Start the stopwatch
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        DateTime startTime = DateTime.Now;
 
         for (int i = 0; i < numberOfThreads; i++)
         {
             int start = i * range + 1;
             int end = (i == numberOfThreads - 1) ? upperLimit : (i + 1) * range;
+            int threadIndex = i;
 
             PrimeNumberSearcher searcher = new PrimeNumberSearcher(start, end, i + 1);
             threads[i] = new Thread(() =>
@@ -55,6 +62,7 @@ class Program
                 lock (allPrimes)
                 {
                     allPrimes.AddRange(primes);
+                    primesPerThread[threadIndex] = primes.Count;
                 }
             });
             threads[i].Start();
@@ -66,9 +74,27 @@ class Program
             thread.Join();
         }
 
+        // Stop the stopwatch
+        stopwatch.Stop();
+        DateTime endTime = DateTime.Now;
+
         // Display all found primes at the end
         allPrimes.Sort();
-        Console.WriteLine("All found primes:");
-        Console.WriteLine(string.Join(", ", allPrimes));
+        //Console.WriteLine("All found primes:");
+        //Console.WriteLine(string.Join(", ", allPrimes));
+
+        // Display start time, end time, and total time taken
+        Console.WriteLine($"Start Time: {startTime.ToString("HH:mm:ss.fff")}");
+        Console.WriteLine($"End Time: {endTime.ToString("HH:mm:ss.fff")}");
+        Console.WriteLine($"Total Time Taken: {stopwatch.ElapsedMilliseconds} ms");
+
+        // Display the count of primes found per thread
+        for (int i = 0; i < numberOfThreads; i++)
+        {
+            Console.WriteLine($"Thread {i + 1} found {primesPerThread[i]} primes.");
+        }
+
+        // Display the total count of primes found
+        Console.WriteLine($"Total primes found: {allPrimes.Count}");
     }
 }
