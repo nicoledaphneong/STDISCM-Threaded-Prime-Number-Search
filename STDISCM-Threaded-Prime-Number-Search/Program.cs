@@ -13,31 +13,70 @@ class Program
 
         // Navigate to the root directory
         string currentDirectory = Directory.GetCurrentDirectory();
-        string projectRoot = Directory.GetParent(currentDirectory).Parent.Parent.FullName;
+        string projectRoot = Directory.GetParent(currentDirectory)?.Parent?.Parent?.FullName;
+
+        if (projectRoot == null)
+        {
+            Console.WriteLine("Error: Unable to determine the project root directory.");
+            return;
+        }
 
         // Define the relative path to the config file
         string configFilePath = Path.Combine(projectRoot, "config.txt");
 
-        // Read configuration settings from config.txt
-        var config = File.ReadAllLines(configFilePath);
-        int numberOfThreads = 0;
-        int upperLimit = 0;
+        // Default configuration settings
+        int numberOfThreads = 4;
+        int upperLimit = 1000;
+        string printing = "immediate";
+        string divisionScheme = "straight";
 
-        foreach (var line in config)
+        // Read configuration settings from config.txt
+        try
         {
-            var parts = line.Split('=');
-            if (parts[0] == "NumberOfThreads")
+            var config = File.ReadAllLines(configFilePath);
+            foreach (var line in config)
             {
-                numberOfThreads = int.Parse(parts[1]);
+                var parts = line.Split('=');
+                if (parts[0] == "NumberOfThreads")
+                {
+                    numberOfThreads = int.Parse(parts[1]);
+                }
+                else if (parts[0] == "UpperLimit")
+                {
+                    upperLimit = int.Parse(parts[1]);
+                }
+                else if (parts[0] == "Printing")
+                {
+                    printing = parts[1];
+                }
+                else if (parts[0] == "DivisionScheme")
+                {
+                    divisionScheme = parts[1];
+                }
             }
-            else if (parts[0] == "UpperLimit")
-            {
-                upperLimit = int.Parse(parts[1]);
-            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error reading config file: {ex.Message}");
+            Console.WriteLine("Using default configuration settings.");
         }
 
         Console.WriteLine($"Number of Threads: {numberOfThreads}");
         Console.WriteLine($"Upper Limit: {upperLimit}");
+        Console.WriteLine($"Printing: {printing}");
+        Console.WriteLine($"Division Scheme: {divisionScheme}");
+
+        // Determine the prime checker implementation based on the config
+        IPrimeNumberSearcher searcherImplementation;
+        if (printing == "immediate" && divisionScheme == "straight")
+        {
+            searcherImplementation = new ImmediateStraight();
+        }
+        else
+        {
+            // Default to ImmediateStraight if the input is not recognized
+            searcherImplementation = new ImmediateStraight();
+        }
 
         // Calculate the range for each thread
         int range = upperLimit / numberOfThreads;
@@ -48,17 +87,18 @@ class Program
         // Start the stopwatch
         Stopwatch stopwatch = Stopwatch.StartNew();
         DateTime startTime = DateTime.Now;
+        Console.WriteLine($"Start Time: {startTime.ToString("HH:mm:ss.fff")}");
 
         for (int i = 0; i < numberOfThreads; i++)
         {
             int start = i * range + 1;
             int end = (i == numberOfThreads - 1) ? upperLimit : (i + 1) * range;
             int threadIndex = i;
+            int customThreadId = i + 1;
 
-            PrimeNumberSearcher searcher = new PrimeNumberSearcher(start, end, i + 1);
             threads[i] = new Thread(() =>
             {
-                var primes = searcher.SearchPrimes();
+                var primes = searcherImplementation.SearchPrimes(start, end, customThreadId);
                 lock (allPrimes)
                 {
                     allPrimes.AddRange(primes);
@@ -78,13 +118,7 @@ class Program
         stopwatch.Stop();
         DateTime endTime = DateTime.Now;
 
-        // Display all found primes at the end
-        allPrimes.Sort();
-        //Console.WriteLine("All found primes:");
-        //Console.WriteLine(string.Join(", ", allPrimes));
-
-        // Display start time, end time, and total time taken
-        Console.WriteLine($"Start Time: {startTime.ToString("HH:mm:ss.fff")}");
+        // Display end time, and total time taken
         Console.WriteLine($"End Time: {endTime.ToString("HH:mm:ss.fff")}");
         Console.WriteLine($"Total Time Taken: {stopwatch.ElapsedMilliseconds} ms");
 
@@ -96,5 +130,17 @@ class Program
 
         // Display the total count of primes found
         Console.WriteLine($"Total primes found: {allPrimes.Count}");
+
+        // Ask the user if they want to display the list of all found primes
+        Console.Write("Display list of all found primes? (Y/n): ");
+        string userInput = Console.ReadLine();
+
+        if (userInput != null && userInput.Equals("Y", StringComparison.OrdinalIgnoreCase))
+        {
+            // Display all found primes at the end
+            allPrimes.Sort();
+            Console.WriteLine("All found primes:");
+            Console.WriteLine(string.Join(", ", allPrimes));
+        }
     }
 }

@@ -1,2 +1,4 @@
-﻿NumberOfThreads=1
-UpperLimit=100000000
+﻿NumberOfThreads=4
+UpperLimit=1000
+Printing=immediate
+DivisionScheme=straight
