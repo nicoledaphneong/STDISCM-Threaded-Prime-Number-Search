@@ -72,6 +72,10 @@ class Program
         {
             searcherImplementation = new ImmediateStraight();
         }
+        else if (printing == "wait" && divisionScheme == "straight")
+        {
+            searcherImplementation = new WaitStraight();
+        }
         else
         {
             // Default to ImmediateStraight if the input is not recognized
@@ -81,13 +85,13 @@ class Program
         // Calculate the range for each thread
         int range = upperLimit / numberOfThreads;
         Thread[] threads = new Thread[numberOfThreads];
-        List<int> allPrimes = new List<int>();
-        int[] primesPerThread = new int[numberOfThreads];
+        List<int>[] primesPerThread = new List<int>[numberOfThreads];
 
         // Start the stopwatch
         Stopwatch stopwatch = Stopwatch.StartNew();
         DateTime startTime = DateTime.Now;
         Console.WriteLine($"Start Time: {startTime.ToString("HH:mm:ss.fff")}");
+        Console.WriteLine("Searching...");
 
         for (int i = 0; i < numberOfThreads; i++)
         {
@@ -96,13 +100,14 @@ class Program
             int threadIndex = i;
             int customThreadId = i + 1;
 
+            primesPerThread[i] = new List<int>();
+
             threads[i] = new Thread(() =>
             {
                 var primes = searcherImplementation.SearchPrimes(start, end, customThreadId);
-                lock (allPrimes)
+                lock (primesPerThread[threadIndex])
                 {
-                    allPrimes.AddRange(primes);
-                    primesPerThread[threadIndex] = primes.Count;
+                    primesPerThread[threadIndex].AddRange(primes);
                 }
             });
             threads[i].Start();
@@ -125,19 +130,60 @@ class Program
         // Display the count of primes found per thread
         for (int i = 0; i < numberOfThreads; i++)
         {
-            Console.WriteLine($"Thread {i + 1} found {primesPerThread[i]} primes.");
+            Console.WriteLine($"Thread {i + 1} found {primesPerThread[i].Count} primes.");
         }
 
         // Display the total count of primes found
-        Console.WriteLine($"Total primes found: {allPrimes.Count}");
+        int totalPrimes = 0;
+        foreach (var primes in primesPerThread)
+        {
+            totalPrimes += primes.Count;
+        }
+        Console.WriteLine($"Total primes found: {totalPrimes}");
+
+        // Print all prime logs after all threads have completed
+        if (searcherImplementation is WaitStraight)
+        {
+            if (totalPrimes < 1000)
+            {
+                WaitStraight.PrintAllPrimeLogs();
+            }
+            else
+            {
+                Console.Write("The number of primes found is quite large. Display primes found per thread? (Y/n): ");
+                string userInput = Console.ReadLine();
+
+                if (userInput != null && userInput.Equals("Y", StringComparison.OrdinalIgnoreCase))
+                {
+                    WaitStraight.PrintAllPrimeLogs();
+                }
+            }
+        }
 
         // Ask the user if they want to display the list of all found primes
-        Console.Write("Display list of all found primes? (Y/n): ");
-        string userInput = Console.ReadLine();
+        if (totalPrimes < 1000)
+        {
+            DisplayAllPrimes(primesPerThread);
+        }
+        else
+        {
+            Console.Write("The list of all primes is quite large. Display list of all found primes? (Y/n): ");
+            string userInput = Console.ReadLine();
 
-        if (userInput != null && userInput.Equals("Y", StringComparison.OrdinalIgnoreCase))
+            if (userInput != null && userInput.Equals("Y", StringComparison.OrdinalIgnoreCase))
+            {
+                DisplayAllPrimes(primesPerThread);
+            }
+        }
+
+        void DisplayAllPrimes(List<int>[] primesPerThread)
         {
             // Display all found primes at the end
+            List<int> allPrimes = new List<int>();
+            foreach (var primes in primesPerThread)
+            {
+                allPrimes.AddRange(primes);
+            }
             allPrimes.Sort();
             Console.WriteLine("All found primes:");
             Console.WriteLine(string.Join(", ", allPrimes));
