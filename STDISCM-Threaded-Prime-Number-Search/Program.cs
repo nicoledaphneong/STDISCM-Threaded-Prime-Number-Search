@@ -39,19 +39,47 @@ class Program
                 var parts = line.Split('=');
                 if (parts[0] == "NumberOfThreads")
                 {
-                    numberOfThreads = int.Parse(parts[1]);
+                    if (int.TryParse(parts[1], out int parsedThreads) && parsedThreads >= 1)
+                    {
+                        numberOfThreads = parsedThreads;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Number of threads is invalid. Using default: 4");
+                    }
                 }
                 else if (parts[0] == "UpperLimit")
                 {
-                    upperLimit = int.Parse(parts[1]);
+                    if (int.TryParse(parts[1], out int parsedLimit) && parsedLimit >= 0)
+                    {
+                        upperLimit = parsedLimit;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Upper limit is invalid. Using default: 1000");
+                    }
                 }
                 else if (parts[0] == "Printing")
                 {
-                    printing = parts[1];
+                    if (parts[1].Equals("immediate", StringComparison.OrdinalIgnoreCase) || parts[1].Equals("wait", StringComparison.OrdinalIgnoreCase))
+                    {
+                        printing = parts[1].ToLower();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Printing mode is invalid. Using default: immediate");
+                    }
                 }
                 else if (parts[0] == "DivisionScheme")
                 {
-                    divisionScheme = parts[1];
+                    if (parts[1].Equals("straight", StringComparison.OrdinalIgnoreCase) || parts[1].Equals("linear", StringComparison.OrdinalIgnoreCase))
+                    {
+                        divisionScheme = parts[1].ToLower();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Division scheme is invalid. Using default: straight");
+                    }
                 }
             }
         }

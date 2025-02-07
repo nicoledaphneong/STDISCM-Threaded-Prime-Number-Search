@@ -1,4 +1,4 @@
 ﻿NumberOfThreads=4
 UpperLimit=1000
-Printing=wait
+Printing=immediate
 DivisionScheme=straight
