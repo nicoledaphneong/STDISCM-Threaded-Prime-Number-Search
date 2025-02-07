@@ -104,6 +104,10 @@ class Program
         {
             searcherImplementation = new WaitStraight();
         }
+        else if (printing == "immediate" && divisionScheme == "linear")
+        {
+            searcherImplementation = new ImmediateLinear();
+        }
         else
         {
             // Default to ImmediateStraight if the input is not recognized
@@ -130,7 +134,7 @@ class Program
         // Display the count of primes found per thread
         for (int i = 0; i < numberOfThreads; i++)
         {
-            Console.WriteLine($"Thread {i + 1} found {primesPerThread[i].Count} primes.");
+            //Console.WriteLine($"Thread {i + 1} found {primesPerThread[i].Count} primes.");
         }
 
         // Display the total count of primes found
