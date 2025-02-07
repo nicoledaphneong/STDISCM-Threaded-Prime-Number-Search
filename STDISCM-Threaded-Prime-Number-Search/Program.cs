@@ -108,6 +108,10 @@ class Program
         {
             searcherImplementation = new ImmediateLinear();
         }
+        else if (printing == "wait" && divisionScheme == "linear")
+        {
+            searcherImplementation = new WaitLinear();
+        }
         else
         {
             // Default to ImmediateStraight if the input is not recognized
@@ -140,7 +144,7 @@ class Program
         Console.WriteLine($"Total primes found: {totalPrimes}");
 
         // Print all prime logs after all threads have completed
-        if (searcherImplementation is WaitStraight)
+        if (searcherImplementation is WaitStraight || searcherImplementation is WaitLinear)
         {
             if (totalPrimes < 1000)
             {
@@ -165,7 +169,7 @@ class Program
         }
         else
         {
-            Console.Write("The list of all primes is quite large. Display list of all found primes? (Y/n): ");
+            Console.Write("The number of primes found is quite large. Display all primes? (Y/n): ");
             string userInput = Console.ReadLine();
 
             if (userInput != null && userInput.Equals("Y", StringComparison.OrdinalIgnoreCase))
@@ -173,18 +177,16 @@ class Program
                 DisplayAllPrimes(primesPerThread);
             }
         }
+    }
 
-        void DisplayAllPrimes(List<int>[] primesPerThread)
+    private static void DisplayAllPrimes(List<int>[] primesPerThread)
+    {
+        foreach (var primes in primesPerThread)
         {
-            // Display all found primes at the end
-            List<int> allPrimes = new List<int>();
-            foreach (var primes in primesPerThread)
+            foreach (var prime in primes)
             {
-                allPrimes.AddRange(primes);
+                Console.WriteLine(prime);
             }
-            allPrimes.Sort();
-            Console.WriteLine("All found primes:");
-            Console.WriteLine(string.Join(", ", allPrimes));
         }
     }
 }

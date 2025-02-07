@@ -1,4 +1,4 @@
 ﻿NumberOfThreads=4
 UpperLimit=1000
-Printing=immediate
+Printing=wait
 DivisionScheme=linear
