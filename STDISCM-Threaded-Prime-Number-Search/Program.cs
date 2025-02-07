@@ -110,42 +110,14 @@ class Program
             searcherImplementation = new ImmediateStraight();
         }
 
-        // Calculate the range for each thread
-        int range = upperLimit / numberOfThreads;
-        Thread[] threads = new Thread[numberOfThreads];
-        List<int>[] primesPerThread = new List<int>[numberOfThreads];
-
         // Start the stopwatch
         Stopwatch stopwatch = Stopwatch.StartNew();
         DateTime startTime = DateTime.Now;
         Console.WriteLine($"Start Time: {startTime.ToString("HH:mm:ss.fff")}");
         Console.WriteLine("Searching...");
 
-        for (int i = 0; i < numberOfThreads; i++)
-        {
-            int start = i * range + 1;
-            int end = (i == numberOfThreads - 1) ? upperLimit : (i + 1) * range;
-            int threadIndex = i;
-            int customThreadId = i + 1;
-
-            primesPerThread[i] = new List<int>();
-
-            threads[i] = new Thread(() =>
-            {
-                var primes = searcherImplementation.SearchPrimes(start, end, customThreadId);
-                lock (primesPerThread[threadIndex])
-                {
-                    primesPerThread[threadIndex].AddRange(primes);
-                }
-            });
-            threads[i].Start();
-        }
-
-        // Wait for all threads to complete
-        foreach (var thread in threads)
-        {
-            thread.Join();
-        }
+        // Start the prime search
+        var primesPerThread = searcherImplementation.StartPrimeSearch(numberOfThreads, upperLimit);
 
         // Stop the stopwatch
         stopwatch.Stop();

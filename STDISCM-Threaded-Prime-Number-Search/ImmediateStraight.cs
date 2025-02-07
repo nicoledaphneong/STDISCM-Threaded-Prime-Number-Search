@@ -7,17 +7,53 @@ public class ImmediateStraight : IPrimeNumberSearcher
     public List<int> SearchPrimes(int start, int end, int customThreadId)
     {
         List<int> primes = new List<int>();
+
         for (int i = start; i <= end; i++)
         {
             if (IsPrime(i))
             {
                 primes.Add(i);
-                // Print each prime immediately with the custom thread ID
                 Console.WriteLine($"Thread ID: {customThreadId}\t|\t Time: {DateTime.Now.ToString("HH:mm:ss.fff")}\t|\t{i}\t|\t Thread Range: ({start} - {end})");
             }
         }
 
         return primes;
+    }
+
+    public List<int>[] StartPrimeSearch(int numberOfThreads, int upperLimit)
+    {
+        // Calculate the range for each thread
+        int range = upperLimit / numberOfThreads;
+        Thread[] threads = new Thread[numberOfThreads];
+        List<int>[] primesPerThread = new List<int>[numberOfThreads];
+
+        for (int i = 0; i < numberOfThreads; i++)
+        {
+            int start = i * range + 1;
+            int end = (i == numberOfThreads - 1) ? upperLimit : (i + 1) * range;
+            int threadIndex = i;
+            int customThreadId = i + 1;
+
+            primesPerThread[i] = new List<int>();
+
+            threads[i] = new Thread(() =>
+            {
+                var primes = SearchPrimes(start, end, customThreadId);
+                lock (primesPerThread[threadIndex])
+                {
+                    primesPerThread[threadIndex].AddRange(primes);
+                }
+            });
+            threads[i].Start();
+        }
+
+        // Wait for all threads to complete
+        foreach (var thread in threads)
+        {
+            thread.Join();
+        }
+
+        return primesPerThread;
     }
 
     private bool IsPrime(int number)
