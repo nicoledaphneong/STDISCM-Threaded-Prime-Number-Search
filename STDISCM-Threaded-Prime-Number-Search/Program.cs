@@ -131,12 +131,6 @@ class Program
         Console.WriteLine($"End Time: {endTime.ToString("HH:mm:ss.fff")}");
         Console.WriteLine($"Total Time Taken: {stopwatch.ElapsedMilliseconds} ms");
 
-        // Display the count of primes found per thread
-        for (int i = 0; i < numberOfThreads; i++)
-        {
-            //Console.WriteLine($"Thread {i + 1} found {primesPerThread[i].Count} primes.");
-        }
-
         // Display the total count of primes found
         int totalPrimes = 0;
         foreach (var primes in primesPerThread)
